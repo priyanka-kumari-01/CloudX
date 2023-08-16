@@ -1,0 +1,106 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Question-Answering Chat</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            height: 100vh;
+            margin: 0;
+        }
+        #question-form {
+            margin-bottom: 20px;
+            text-align: center;
+        }
+        label {
+            font-weight: bold;
+            display: block;
+            margin-bottom: 5px;
+        }
+        input[type="text"] {
+            width: 100%;
+            padding: 8px;
+            border: 1px solid #ccc;
+            border-radius: 4px;
+        }
+        button[type="submit"] {
+            padding: 8px 12px;
+            background-color: #4CAF50;
+            color: white;
+            border: none;
+            border-radius: 4px;
+            cursor: pointer;
+        }
+        button[type="submit"]:hover {
+            background-color: #45a049;
+        }
+        #answer-container {
+            border: 1px solid #ccc;
+            padding: 10px;
+            border-radius: 4px;
+            text-align: center;
+        }
+    </style>
+    </head>
+    <body>
+        <h1>Question-Answering Chat</h1>
+            <form id="question-form">
+                <label for="question">Enter your question:</label>
+                <input type="text" id="question" name="question" required>
+                <button type="submit">Submit</button>
+            </form>
+
+            <div id="answer-container">
+                <!-- Answers will be displayed here -->
+            </div>
+            <ul id="qa-list"></ul>
+    <script>
+        document.getElementById("question-form").addEventListener("submit", async function(event) {
+            event.preventDefault();
+            
+            const questionInput = document.getElementById("question");
+            const question = questionInput.value;
+
+            // Fetch data from the server
+            const response = await fetch("process_question/", {
+                method: "POST",
+                headers: {
+                    "Content-Type": "application/json",
+                    "X-CSRFToken": getCookie("csrftoken"),
+                },
+                body: JSON.stringify({ question: question }),
+            });
+
+            try {
+                const data = await response.json();
+                const qaList = document.getElementById("qa-list");
+                const qaItem = document.createElement("li");
+                qaItem.innerHTML = `<strong>Q:</strong> ${question}<br><strong>A:</strong> ${data.answer}`;
+                qaList.appendChild(qaItem);
+
+                // Display the answer in the answer-container
+                const answerContainer = document.getElementById("answer-container");
+                answerContainer.innerHTML = `<p><strong>Answer:</strong> ${data.answer}</p>`;
+                
+                // Clear the input field
+                questionInput.value = "";
+            } catch (error) {
+                console.error("Error:", error);
+            }
+        });
+        
+        // Function to get CSRF token from cookies
+        function getCookie(name) {
+            var value = "; " + document.cookie;
+            var parts = value.split("; " + name + "=");
+            if (parts.length === 2) return parts.pop().split(";").shift();
+        }
+    </script>
+</body>
+</html>
